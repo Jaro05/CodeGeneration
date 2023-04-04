@@ -2,30 +2,61 @@
 #include "utilities.h"
 #include "gen_code.h"
 
+
+/* HOW TO COMPILE AND RUN THE CODE
+
+    // TO COMPILE
+    gcc -o compiler ast.c code.c compiler_main.c file_location.c gen_code.c id_attrs.c id_use.c instruction.c label.c lexer.c lexer_output.c lexical_address.c parser.c reserved.c scope.c scope_check.c symtab.c token.c unparser.c utilities.c
+
+    // TO RUN
+    // PART 1
+    ./compiler hw4-vmtest1.pl0 > hw4-vmtest1.myvi
+                        or
+    make hw4-vmtest1.myvi
+
+    // PART 2
+    vm/vm hw4-vmtest1.myvi > hw4-vmtest1.myvo 2>&1
+                        or
+    make hw4-vmtest1.myvo
+
+*/
+
+
+
+
+
+
+
+
+
+
 // Initialize the code generator
 void gen_code_initialize()
 {
-    bail_with_error("gen_code_initialize not implemented yet!");
+    //bail_with_error("gen_code_initialize not implemented yet!");
 }
 
 // Generate code for the given AST
 code_seq gen_code_program(AST *prog)
 {
-    code_seq ret = code_seq_singleton(code_inc(BLOCK_LINKS_SIZE));
-    ret = code_seq_concat(ret, gen_code_varDecls(prog->data.program.vds));
-    ret = code_seq_concat(ret, gen_code_stmt(prog->data.program.stmt));
-    ret = code_seq_add_to_end(ret, code_hlt());
-    return ret;
+    // ⟨program⟩ ::= ⟨block⟩ in pl0, so just go on to gen_code_block.
+    code_seq ret = gen_code_block(prog);
+    return(ret);
 }
 
 // generate code for blk
 code_seq gen_code_block(AST *blk)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_block not implemented yet!");
-    return code_seq_empty();
+    code_seq ret = code_seq_singleton(code_inc(LINKS_SIZE));
+    //TODO: const decls
+    ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
+    //TODO: proc decls
+    ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
+    ret = code_seq_add_to_end(ret, code_hlt());
+    return ret;
 }
 
+// TODO
 // generate code for the declarations in cds
 code_seq gen_code_constDecls(AST_list cds)
 {
@@ -34,6 +65,7 @@ code_seq gen_code_constDecls(AST_list cds)
     return code_seq_empty();
 }
 
+// TODO
 // generate code for the const declaration cd
 code_seq gen_code_constDecl(AST *cd)
 {
@@ -59,6 +91,7 @@ code_seq gen_code_varDecl(AST *vd)
     return code_seq_singleton(code_inc(1));
 }
 
+// TODO
 // generate code for the declarations in pds
 void gen_code_procDecls(AST_list pds)
 {
@@ -66,6 +99,7 @@ void gen_code_procDecls(AST_list pds)
     bail_with_error("gen_code_procDecls not implemented yet!");
 }
 
+// TODO
 // generate code for the procedure declaration pd
 void gen_code_procDecl(AST *pd)
 {
@@ -80,18 +114,26 @@ code_seq gen_code_stmt(AST *stmt)
         case assign_ast:
 	        return gen_code_assignStmt(stmt);
 	        break;
+        case call_ast:
+            return gen_code_callStmt(stmt);
         case begin_ast:
 	        return gen_code_beginStmt(stmt);
 	        break;
         case if_ast:
 	        return gen_code_ifStmt(stmt);
 	        break;
+        case while_ast:
+            return gen_code_whileStmt(stmt);
+            break;
         case read_ast:
 	        return gen_code_readStmt(stmt);
 	        break;
         case write_ast:
 	        return gen_code_writeStmt(stmt);
 	        break;
+        case skip_ast:
+            return gen_code_skipStmt(stmt);
+            break;
         default:
 	        bail_with_error("Bad AST passed to gen_code_stmt!");
 	        // The following should never execute
@@ -115,6 +157,7 @@ code_seq gen_code_assignStmt(AST *stmt)
     return ret;
 }
 
+// TODO
 // generate code for the statement
 code_seq gen_code_callStmt(AST *stmt)
 {
@@ -123,6 +166,7 @@ code_seq gen_code_callStmt(AST *stmt)
     return code_seq_empty();
 }
 
+// TODO Correct begin stmt
 // generate code for the statement
 code_seq gen_code_beginStmt(AST *stmt)
 {
@@ -141,27 +185,30 @@ code_seq gen_code_beginStmt(AST *stmt)
     ret = code_seq_add_to_end(ret, code_psp());
     ret = code_seq_add_to_end(ret, code_lit(1));
     ret = code_seq_add_to_end(ret, code_sub());
-    ret = code_seq_add_to_end(ret, code_rbp());
+    // TODO fix compiltation errro ret = code_seq_add_to_end(ret, code_rbp());
     // allocate any declared variables
-    AST_list vds = stmt->data.begin_stmt.vds;
-    int num_vds = ast_list_size(vds);
-    ret = code_seq_concat(ret, gen_code_varDecls(vds));
+
+    //TODO Fix code below that causes compilation errors
+    // AST_list vds = stmt->data.begin_stmt.vds;
+    //int num_vds = ast_list_size(vds);
+    //ret = code_seq_concat(ret, gen_code_varDecls(vds));
     // add code for all the statements
     AST_list stmts = stmt->data.begin_stmt.stmts;
     while (!ast_list_is_empty(stmts)) {
         ret = code_seq_concat(ret, gen_code_stmt(ast_list_first(stmts)));
         stmts = ast_list_rest(stmts);
     }
-    if (num_vds > 0) {
+    //if (num_vds > 0) {
 	    // if there are variables, trim the variables
-	    ret = code_seq_add_to_end(ret, code_inc(- num_vds));
-    }
+	    //ret = code_seq_add_to_end(ret, code_inc(- num_vds));
+    //}
 
     // restore the old BP
-    ret = code_seq_add_to_end(ret, code_rbp());
+    // TODO fix compilation error ret = code_seq_add_to_end(ret, code_rbp());
     return ret;
 }
 
+// TODO fix ifstmt
 // generate code for the statement
 code_seq gen_code_ifStmt(AST *stmt)
 {
@@ -171,14 +218,17 @@ code_seq gen_code_ifStmt(AST *stmt)
         JMP [around the body]
         [code for the body]
      */
-    code_seq condc = gen_code_expr(stmt->data.if_stmt.exp);
-    code_seq bodyc = gen_code_stmt(stmt->data.if_stmt.stmt);
-    code_seq ret = code_seq_add_to_end(condc, code_jpc(2));
-    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(bodyc)+1));
-    ret = code_seq_concat(ret, bodyc);
-    return ret;
+
+    //TODO Fix code below that causes compilation errors
+    //code_seq condc = gen_code_expr(stmt->data.if_stmt.exp);
+    //code_seq bodyc = gen_code_stmt(stmt->data.if_stmt.stmt);
+    // code_seq ret = code_seq_add_to_end(condc, code_jpc(2));
+    // ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(bodyc)+1));
+    // ret = code_seq_concat(ret, bodyc);
+    //return ret;
 }
 
+// TODO fix whilestmt
 // generate code for the statement
 code_seq gen_code_whileStmt(AST *stmt)
 {
@@ -213,6 +263,7 @@ code_seq gen_code_writeStmt(AST *stmt)
     return code_seq_add_to_end(ret, code_cho());
 }
 
+// TODO the skip stmt.
 // generate code for the statement
 code_seq gen_code_skipStmt(AST *stmt)
 {
@@ -221,6 +272,7 @@ code_seq gen_code_skipStmt(AST *stmt)
     return code_seq_empty();
 }
 
+// TODO
 // generate code for the condition
 code_seq gen_code_cond(AST *cond)
 {
@@ -229,6 +281,7 @@ code_seq gen_code_cond(AST *cond)
     return code_seq_empty();
 }
 
+// TODO
 // generate code for the condition
 code_seq gen_code_odd_cond(AST *cond)
 {
@@ -237,6 +290,7 @@ code_seq gen_code_odd_cond(AST *cond)
     return code_seq_empty();
 }
 
+// TODO
 // generate code for the condition
 code_seq gen_code_bin_cond(AST *cond)
 {
@@ -245,6 +299,7 @@ code_seq gen_code_bin_cond(AST *cond)
     return code_seq_empty();
 }
 
+// TODO fix this for pl0.
 // generate code for the expresion
 code_seq gen_code_expr(AST *exp)
 {
@@ -258,9 +313,10 @@ code_seq gen_code_expr(AST *exp)
         case bin_expr_ast:
 	        return gen_code_bin_expr(exp);
 	        break;
-        case not_expr_ast:
-	        return gen_code_not_expr(exp);
-	        break;
+        // TODO fix this code that causes compilation errors
+        //case not_expr_ast:
+	        //return gen_code_not_expr(exp);
+	       // break;
         default:
 	        bail_with_error("gen_code_expr passed bad AST!");
             // The following should never execute
@@ -269,6 +325,7 @@ code_seq gen_code_expr(AST *exp)
     }
 }
 
+// TODO
 // generate code for the expression (exp)
 code_seq gen_code_bin_expr(AST *exp)
 {
@@ -279,10 +336,10 @@ code_seq gen_code_bin_expr(AST *exp)
     */
     code_seq ret = gen_code_expr(exp->data.bin_expr.leftexp);
     ret = code_seq_concat(ret, gen_code_expr(exp->data.bin_expr.rightexp));
-    switch (exp->data.bin_expr.op) {
-        case eqeqop:
-	        return code_seq_add_to_end(ret, code_eql());
-	        break;
+    switch (1/* TODO fix compilation error: exp->data.bin_expr.op*/) {
+        //case eqeqop:
+	       // return code_seq_add_to_end(ret, code_eql());
+	       // break;
         case neqop:
 	        return code_seq_add_to_end(ret, code_neq());
 	        break;
@@ -292,18 +349,19 @@ code_seq gen_code_bin_expr(AST *exp)
         case leqop:
 	        return code_seq_add_to_end(ret, code_leq());
 	        break;
-        case plusop:
-	        return code_seq_add_to_end(ret, code_add());
-	        break;
-        case minusop:
-	        return code_seq_add_to_end(ret, code_sub());
-	        break;
-        case multop:
-	        return code_seq_add_to_end(ret, code_mul());
-	        break;
-        case divop:
-	        return code_seq_add_to_end(ret, code_div());
-	        break;
+        // TODO fix compilation errors
+        // case plusop:
+	    //     return code_seq_add_to_end(ret, code_add());
+	    //     break;
+        // case minusop:
+	    //     return code_seq_add_to_end(ret, code_sub());
+	    //     break;
+        // case multop:
+	    //     return code_seq_add_to_end(ret, code_mul());
+	    //     break;
+        // case divop:
+	    //     return code_seq_add_to_end(ret, code_div());
+	    //     break;
         default:
 	        bail_with_error("gen_code_bin_expr passed AST with bad op!");
 	        // The following should never execute
@@ -311,6 +369,7 @@ code_seq gen_code_bin_expr(AST *exp)
     }
 }
 
+// TODO
 // generate code for the ident expression (ident)
 code_seq gen_code_ident_expr(AST *ident)
 {
@@ -326,5 +385,6 @@ code_seq gen_code_ident_expr(AST *ident)
 // generate code for the number expression (num)
 code_seq gen_code_number_expr(AST *num)
 {
-    return code_seq_singleton(code_lit(word2float(num->data.number.value)));
+    // TODO fix compilation error
+    // return code_seq_singleton(code_lit(word2float(num->data.number.value)));
 }
