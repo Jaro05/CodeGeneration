@@ -49,7 +49,7 @@ code_seq gen_code_block(AST *blk)
 {
     code_seq ret = code_seq_singleton(code_inc(LINKS_SIZE));
     //TODO: const decls
-    ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
+    //ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     //TODO: proc decls
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_hlt());
@@ -314,10 +314,6 @@ code_seq gen_code_expr(AST *exp)
         case bin_expr_ast:
 	        return gen_code_bin_expr(exp);
 	        break;
-        // TODO fix this code that causes compilation errors
-        //case not_expr_ast:
-	        //return gen_code_not_expr(exp);
-	       // break;
         default:
 	        bail_with_error("gen_code_expr passed bad AST!");
             // The following should never execute
@@ -387,5 +383,5 @@ code_seq gen_code_ident_expr(AST *ident)
 code_seq gen_code_number_expr(AST *num)
 {
     // TODO fix compilation error
-    // return code_seq_singleton(code_lit(word2float(num->data.number.value)));
+    return code_seq_singleton(code_lit((num->data.number.value)));
 }
