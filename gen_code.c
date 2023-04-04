@@ -6,7 +6,7 @@
 /* HOW TO COMPILE AND RUN THE CODE
 
     // TO COMPILE
-    gcc -o compiler ast.c code.c compiler_main.c file_location.c gen_code.c id_attrs.c id_use.c instruction.c label.c lexer.c lexer_output.c lexical_address.c parser.c reserved.c scope.c scope_check.c symtab.c token.c unparser.c utilities.c
+    gcc -o compiler ast.c ast.h code.c code.h compiler_main.c file_location.c file_location.h gen_code.c gen_code.h id_attrs.c id_attrs.h id_use.c id_use.h instruction.c instruction.h label.c label.h lexer.c lexer.h lexer_output.c lexer_output.h lexical_address.c lexical_address.h parser.c parser.h reserved.c reserved.h scope.c scope.h scope_check.c scope_check.h symtab.c symtab.h token.c token.h unparser.c unparser.h utilities.c utilities.h
 
     // TO RUN
     // PART 1
@@ -116,6 +116,7 @@ code_seq gen_code_stmt(AST *stmt)
 	        break;
         case call_ast:
             return gen_code_callStmt(stmt);
+            break;
         case begin_ast:
 	        return gen_code_beginStmt(stmt);
 	        break;
