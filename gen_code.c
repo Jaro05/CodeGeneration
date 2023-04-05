@@ -49,7 +49,7 @@ code_seq gen_code_block(AST *blk)
 {
     code_seq ret = code_seq_singleton(code_inc(LINKS_SIZE));
     //TODO: const decls
-    //ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
+    ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     //TODO: proc decls
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_hlt());
@@ -209,7 +209,6 @@ code_seq gen_code_beginStmt(AST *stmt)
     return ret;
 }
 
-// TODO fix ifstmt
 // generate code for the statement
 code_seq gen_code_ifStmt(AST *stmt)
 {
@@ -220,13 +219,25 @@ code_seq gen_code_ifStmt(AST *stmt)
         [code for the body]
      */
 
-    //TODO Fix code below that causes compilation errors
-    //code_seq condc = gen_code_expr(stmt->data.if_stmt.exp);
-    //code_seq bodyc = gen_code_stmt(stmt->data.if_stmt.stmt);
-    // code_seq ret = code_seq_add_to_end(condc, code_jpc(2));
-    // ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(bodyc)+1));
-    // ret = code_seq_concat(ret, bodyc);
-    //return ret;
+    code_seq cond = gen_code_cond(stmt->data.if_stmt.cond);
+    code_seq ret = code_seq_add_to_end(cond, code_jpc(2));
+    code_seq thenbody = gen_code_stmt(stmt->data.if_stmt.thenstmt);
+    code_seq elsebody = gen_code_stmt2(stmt->data.if_stmt.elsestmt);
+    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(thenbody) + 2));
+    ret = code_seq_concat(ret, thenbody);
+    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(elsebody) + 1));
+    ret = code_seq_concat(ret, elsebody);
+
+    return(ret);
+
+    /* Code given by professor
+    code_seq condc = gen_code_expr(stmt->data.if_stmt.exp);
+    code_seq bodyc = gen_code_stmt(stmt->data.if_stmt.stmt);
+    code_seq ret = code_seq_add_to_end(condc, code_jpc(2));
+    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(bodyc)+1));
+    ret = code_seq_concat(ret, bodyc);
+    return ret;
+    */
 }
 
 // TODO fix whilestmt
