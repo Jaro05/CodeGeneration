@@ -48,7 +48,7 @@ code_seq gen_code_program(AST *prog)
 code_seq gen_code_block(AST *blk)
 {
     code_seq ret = code_seq_singleton(code_inc(LINKS_SIZE));
-    //TODO: const decls
+    ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     //TODO: proc decls
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
@@ -60,18 +60,19 @@ code_seq gen_code_block(AST *blk)
 // generate code for the declarations in cds
 code_seq gen_code_constDecls(AST_list cds)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_constDecls not implemented yet!");
-    return code_seq_empty();
+    code_seq ret = code_seq_empty();
+    while (!ast_list_is_empty(cds)) {
+        ret = code_seq_concat(ret, gen_code_constDecl(ast_list_first(cds)));
+        cds = ast_list_rest(cds);
+    }
+    return ret;
 }
 
 // TODO
 // generate code for the const declaration cd
 code_seq gen_code_constDecl(AST *cd)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_constDecl not implemented yet!");
-    return code_seq_empty();
+    return code_seq_singleton(code_inc(1));
 }
 
 // generate code for the declarations in vds
@@ -222,7 +223,7 @@ code_seq gen_code_ifStmt(AST *stmt)
     code_seq cond = gen_code_cond(stmt->data.if_stmt.cond);
     code_seq ret = code_seq_add_to_end(cond, code_jpc(2));
     code_seq thenbody = gen_code_stmt(stmt->data.if_stmt.thenstmt);
-    code_seq elsebody = gen_code_stmt2(stmt->data.if_stmt.elsestmt);
+    code_seq elsebody = gen_code_stmt(stmt->data.if_stmt.elsestmt);
     ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(thenbody) + 2));
     ret = code_seq_concat(ret, thenbody);
     ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(elsebody) + 1));
