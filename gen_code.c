@@ -284,31 +284,55 @@ code_seq gen_code_skipStmt(AST *stmt)
     return code_seq_empty();
 }
 
-// TODO
 // generate code for the condition
 code_seq gen_code_cond(AST *cond)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_cond not implemented yet!");
-    return code_seq_empty();
+    if(cond->type_tag == oddsym){
+        return gen_code_odd_cond(cond);
+    }else{
+        return gen_code_bin_cond(cond);
+    }
 }
 
-// TODO
+// TODO fix this idk what should happen here
 // generate code for the condition
 code_seq gen_code_odd_cond(AST *cond)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_odd_cond not implemented yet!");
-    return code_seq_empty();
+    code_seq ret = gen_code_expr(cond->data.odd_cond.exp);
+
+    return ret;
 }
 
-// TODO
 // generate code for the condition
 code_seq gen_code_bin_cond(AST *cond)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_bin_cond not implemented yet!");
-    return code_seq_empty();
+    code_seq ret = gen_code_expr(cond->data.bin_cond.leftexp);
+    ret = code_seq_concat(ret, gen_code_expr(cond->data.bin_cond.rightexp));
+    switch (cond->data.bin_cond.relop) {
+        case eqop:
+            return code_seq_add_to_end(ret, code_eql());
+            break;
+        case neqop:
+            return code_seq_add_to_end(ret, code_neq());
+            break;
+        case ltop:
+            return code_seq_add_to_end(ret, code_lss());
+            break;
+        case leqop:
+            return code_seq_add_to_end(ret, code_leq());
+            break;
+        case gtop:
+            return code_seq_add_to_end(ret, code_gtr());
+            break;
+        case geqop:
+            return code_seq_add_to_end(ret, code_geq());
+            break;
+        default:
+	        bail_with_error("gen_code_bin_expr passed AST with bad relop!");
+	        // The following should never execute
+	        return code_seq_empty();
+    }
+
 }
 
 // TODO fix this for pl0.
@@ -333,7 +357,6 @@ code_seq gen_code_expr(AST *exp)
     }
 }
 
-// TODO
 // generate code for the expression (exp)
 code_seq gen_code_bin_expr(AST *exp)
 {
@@ -344,32 +367,19 @@ code_seq gen_code_bin_expr(AST *exp)
     */
     code_seq ret = gen_code_expr(exp->data.bin_expr.leftexp);
     ret = code_seq_concat(ret, gen_code_expr(exp->data.bin_expr.rightexp));
-    switch (1/* TODO fix compilation error: exp->data.bin_expr.op*/) {
-        //case eqeqop:
-	       // return code_seq_add_to_end(ret, code_eql());
-	       // break;
-        case neqop:
-	        return code_seq_add_to_end(ret, code_neq());
-	        break;
-        case ltop:
-	        return code_seq_add_to_end(ret, code_lss());
-	        break;
-        case leqop:
-	        return code_seq_add_to_end(ret, code_leq());
-	        break;
-        // TODO fix compilation errors
-        // case plusop:
-	    //     return code_seq_add_to_end(ret, code_add());
-	    //     break;
-        // case minusop:
-	    //     return code_seq_add_to_end(ret, code_sub());
-	    //     break;
-        // case multop:
-	    //     return code_seq_add_to_end(ret, code_mul());
-	    //     break;
-        // case divop:
-	    //     return code_seq_add_to_end(ret, code_div());
-	    //     break;
+    switch (exp->data.bin_expr.arith_op) {
+        case addop:
+            return code_seq_add_to_end(ret, code_add());
+            break;
+        case subop:
+            return code_seq_add_to_end(ret, code_sub());
+            break;
+        case divop:
+            return code_seq_add_to_end(ret, code_div());
+            break;
+        case multop:
+            return code_seq_add_to_end(ret, code_mul());
+            break;
         default:
 	        bail_with_error("gen_code_bin_expr passed AST with bad op!");
 	        // The following should never execute
@@ -377,7 +387,6 @@ code_seq gen_code_bin_expr(AST *exp)
     }
 }
 
-// TODO
 // generate code for the ident expression (ident)
 code_seq gen_code_ident_expr(AST *ident)
 {
