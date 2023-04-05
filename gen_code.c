@@ -7,6 +7,7 @@
 
     // TO COMPILE
     gcc -o compiler ast.c ast.h code.c code.h compiler_main.c file_location.c file_location.h gen_code.c gen_code.h id_attrs.c id_attrs.h id_use.c id_use.h instruction.c instruction.h label.c label.h lexer.c lexer.h lexer_output.c lexer_output.h lexical_address.c lexical_address.h parser.c parser.h reserved.c reserved.h scope.c scope.h scope_check.c scope_check.h symtab.c symtab.h token.c token.h unparser.c unparser.h utilities.c utilities.h
+    gcc compiler ast.c ast.h code.c code.h compiler_main.c file_location.c file_location.h gen_code.c gen_code.h id_attrs.c id_attrs.h id_use.c id_use.h instruction.c instruction.h label.c label.h lexer.c lexer.h lexer_output.c lexer_output.h lexical_address.c lexical_address.h parser.c parser.h reserved.c reserved.h scope.c scope.h scope_check.c scope_check.h symtab.c symtab.h token.c token.h unparser.c unparser.h utilities.c utilities.h
 
     // TO RUN
     // PART 1
@@ -20,11 +21,6 @@
     make hw4-vmtest1.myvo
 
 */
-
-
-
-
-
 
 
 
@@ -163,6 +159,7 @@ code_seq gen_code_assignStmt(AST *stmt)
 // generate code for the statement
 code_seq gen_code_callStmt(AST *stmt)
 {
+    
     // Replace the following with your implementation
     bail_with_error("gen_code_callStmt not implemented yet!");
     return code_seq_empty();
@@ -246,8 +243,20 @@ code_seq gen_code_ifStmt(AST *stmt)
 code_seq gen_code_whileStmt(AST *stmt)
 {
     // Replace the following with your implementation
-    bail_with_error("gen_code_whileStmt not implemented yet!");
-    return code_seq_empty();
+    code_seq cond = gen_code_whileStmt(stmt->data.while_stmt.cond);
+    code_seq ret = code_seq_add_to_end(cond, code_jpc(2));
+    code_seq thenbody = gen_code_stmt(stmt->data.if_stmt.thenstmt);
+    code_seq elsebody = gen_code_stmt(stmt->data.if_stmt.elsestmt);
+    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(thenbody) + 2));
+    ret = code_seq_concat(ret, thenbody);
+    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(elsebody) + 1));
+    ret = code_seq_concat(ret, elsebody);
+
+    return(ret);
+
+
+    // bail_with_error("gen_code_whileStmt not implemented yet!");
+    // return code_seq_empty();
 }
 
 // generate code for the statement
