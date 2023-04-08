@@ -180,18 +180,15 @@ code_seq gen_code_beginStmt(AST *stmt)
      */
 
     // save the static link (surronging scope's BP) on stack
-    code_seq ret = code_seq_singleton(code_pbp());
-    // set the BP to SP-1
-    ret = code_seq_add_to_end(ret, code_psp());
-    ret = code_seq_add_to_end(ret, code_lit(1));
-    ret = code_seq_add_to_end(ret, code_sub());
-    // TODO fix compiltation errro ret = code_seq_add_to_end(ret, code_rbp());
-    // allocate any declared variables
+    code_seq ret = code_seq_empty();
+    // code_seq ret = code_seq_singleton(code_pbp());
+    // // set the BP to SP-1
+    // ret = code_seq_add_to_end(ret, code_psp());
+    // ret = code_seq_add_to_end(ret, code_lit(1));
+    // ret = code_seq_add_to_end(ret, code_sub());
+    //ret = code_seq_add_to_end(ret, code_rbp());
 
     //TODO Fix code below that causes compilation errors
-    // AST_list vds = stmt->data.begin_stmt.vds;
-    //int num_vds = ast_list_size(vds);
-    //ret = code_seq_concat(ret, gen_code_varDecls(vds));
     // add code for all the statements
     AST_list stmts = stmt->data.begin_stmt.stmts;
     while (!ast_list_is_empty(stmts)) {
@@ -204,7 +201,7 @@ code_seq gen_code_beginStmt(AST *stmt)
     //}
 
     // restore the old BP
-    // TODO fix compilation error ret = code_seq_add_to_end(ret, code_rbp());
+    //ret = code_seq_add_to_end(ret, code_rbp());
     return ret;
 }
 
