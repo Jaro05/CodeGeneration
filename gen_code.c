@@ -68,7 +68,8 @@ code_seq gen_code_constDecls(AST_list cds)
 // generate code for the const declaration cd
 code_seq gen_code_constDecl(AST *cd)
 {
-    return code_seq_singleton(code_inc(1));
+    code_seq ret = code_seq_singleton(code_lit(cd->data.const_decl.num_val));
+    return ret;
 }
 
 // generate code for the declarations in vds
@@ -253,10 +254,6 @@ code_seq gen_code_whileStmt(AST *stmt)
     ret = code_seq_concat(ret, elsebody);
 
     return(ret);
-
-
-    // bail_with_error("gen_code_whileStmt not implemented yet!");
-    // return code_seq_empty();
 }
 
 // generate code for the statement
@@ -285,13 +282,10 @@ code_seq gen_code_writeStmt(AST *stmt)
     return code_seq_add_to_end(ret, code_cho());
 }
 
-// TODO the skip stmt.
 // generate code for the statement
 code_seq gen_code_skipStmt(AST *stmt)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_skipStmt not implemented yet!");
-    return code_seq_empty();
+    return code_nop();
 }
 
 // generate code for the condition
