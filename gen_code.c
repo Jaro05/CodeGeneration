@@ -181,14 +181,7 @@ code_seq gen_code_beginStmt(AST *stmt)
 
     // save the static link (surronging scope's BP) on stack
     code_seq ret = code_seq_empty();
-    // code_seq ret = code_seq_singleton(code_pbp());
-    // // set the BP to SP-1
-    // ret = code_seq_add_to_end(ret, code_psp());
-    // ret = code_seq_add_to_end(ret, code_lit(1));
-    // ret = code_seq_add_to_end(ret, code_sub());
-    //ret = code_seq_add_to_end(ret, code_rbp());
 
-    //TODO Fix code below that causes compilation errors
     // add code for all the statements
     AST_list stmts = stmt->data.begin_stmt.stmts;
     while (!ast_list_is_empty(stmts)) {
@@ -200,8 +193,6 @@ code_seq gen_code_beginStmt(AST *stmt)
 	    //ret = code_seq_add_to_end(ret, code_inc(- num_vds));
     //}
 
-    // restore the old BP
-    //ret = code_seq_add_to_end(ret, code_rbp());
     return ret;
 }
 
@@ -240,15 +231,23 @@ code_seq gen_code_ifStmt(AST *stmt)
 // generate code for the statement
 code_seq gen_code_whileStmt(AST *stmt)
 {
-    // Replace the following with your implementation
-    code_seq cond = gen_code_whileStmt(stmt->data.while_stmt.cond);
+    // // Replace the following with your implementation
+    // code_seq cond = gen_code_whileStmt(stmt->data.while_stmt.cond);
+    // code_seq ret = code_seq_add_to_end(cond, code_jpc(2));
+    // code_seq thenbody = gen_code_stmt(stmt->data.if_stmt.thenstmt);
+    // code_seq elsebody = gen_code_stmt(stmt->data.if_stmt.elsestmt);
+    // ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(thenbody) + 2));
+    // ret = code_seq_concat(ret, thenbody);
+    // ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(elsebody) + 1));
+    // ret = code_seq_concat(ret, elsebody);
+
+    code_seq cond = gen_code_cond(stmt->data.while_stmt.cond);
     code_seq ret = code_seq_add_to_end(cond, code_jpc(2));
-    code_seq thenbody = gen_code_stmt(stmt->data.if_stmt.thenstmt);
-    code_seq elsebody = gen_code_stmt(stmt->data.if_stmt.elsestmt);
-    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(thenbody) + 2));
-    ret = code_seq_concat(ret, thenbody);
-    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(elsebody) + 1));
-    ret = code_seq_concat(ret, elsebody);
+    code_seq stmtbody = gen_code_stmt(stmt->data.while_stmt.stmt);
+    ret = code_seq_add_to_end(ret, code_jmp(code_seq_size(stmtbody) + 2));
+    ret = code_seq_concat(ret, stmtbody);
+    ret = code_seq_add_to_end(ret, code_jmp( -(code_seq_size(cond)) ));
+
 
     return(ret);
 }
