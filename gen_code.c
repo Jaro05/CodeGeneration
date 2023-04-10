@@ -23,8 +23,8 @@
 */
 
 
-
-
+AST *procs[200];
+static int index = 0;
 
 // Initialize the code generator
 void gen_code_initialize()
@@ -46,7 +46,8 @@ code_seq gen_code_block(AST *blk)
     code_seq ret = code_seq_singleton(code_inc(LINKS_SIZE));
     ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
-    //TODO: proc decls
+    //Proc decls returns void because they are stored in a global data structure.
+    gen_code_procDecls(blk->data.program.pds);
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_hlt());
     return ret;
@@ -89,20 +90,21 @@ code_seq gen_code_varDecl(AST *vd)
     return code_seq_singleton(code_inc(1));
 }
 
-// TODO
 // generate code for the declarations in pds
 void gen_code_procDecls(AST_list pds)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_procDecls not implemented yet!");
+    while (!ast_list_is_empty(pds)) {
+        gen_code_procDecl(ast_list_first(pds));
+        pds = ast_list_rest(pds);
+    }
 }
 
-// TODO
-// generate code for the procedure declaration pd
+// ⟨proc-decl⟩ ::= procedure ⟨ident⟩ ; ⟨block⟩ ;
 void gen_code_procDecl(AST *pd)
 {
-    // Replace the following with your implementation
-    bail_with_error("gen_code_procDecl not implemented yet!");
+    //Add the procedure for the AST to the array/linked list.
+    procs[index] = pd;
+    index++;
 }
 
 // generate code for the statement
