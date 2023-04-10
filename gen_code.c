@@ -25,6 +25,7 @@
 
 AST *procs[200];
 static int index = 0;
+static int procBodysSize = 0;
 
 // Initialize the code generator
 void gen_code_initialize()
@@ -47,9 +48,22 @@ code_seq gen_code_block(AST *blk)
     ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     //Proc decls returns void because they are stored in a global data structure.
-    gen_code_procDecls(blk->data.program.pds);
+    if(index == 0){
+        gen_code_procDecls(blk->data.program.pds);
+        code_seq procret = code_seq_empty();
+        for(int i = 0; i < index; i++){
+            procret = code_seq_concat(procret, gen_code_block(procs[i]->data.proc_decl.block));
+           
+        }
+        procBodysSize += code_seq_size(procret);
+        procret = code_seq_concat(code_jmp(procBodysSize), procret);
+        procret = code_seq_concat(procret, code_rtn());
+        ret = code_seq_concat(procret, ret);
+    }
+    
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_hlt());
+
     return ret;
 }
 
