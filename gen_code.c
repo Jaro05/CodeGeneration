@@ -24,6 +24,9 @@
 
 
 code_seq procs;
+//Also a global data struct for the starting points of the procedures.
+int starting[200];
+int index = 1;
 static int procBodysSize = 0;
 
 // Initialize the code generator
@@ -36,9 +39,11 @@ void gen_code_initialize()
 code_seq gen_code_program(AST *prog)
 {
     // ⟨program⟩ ::= ⟨block⟩ in pl0, so just go on to gen_code_block.
+    starting[0] = 1;
     procs = code_seq_empty();
     code_seq ret = gen_code_block(prog);
     ret = code_seq_concat(procs, ret);
+    ret = code_seq_concat(code_jmp(procBodysSize), ret);
     return(ret);
 }
 
@@ -105,20 +110,26 @@ void gen_code_procDecls(AST_list pds)
 void gen_code_procDecl(AST *pd)
 {
     //Add the procedure for the AST to the array/linked list.
+    label_set(pd->data.proc_decl.lab, 1); //set the label to be used later.
+    printf("%d", pd->data.proc_decl.lab->addr);
     procs = code_seq_concat(procs, gen_code_procBlock(pd->data.proc_decl.block));
-    pd->data.proc_decl.lab; //set the label to be used later.
 }
 
 // generate code for blk
 code_seq gen_code_procBlock(AST *blk)
 {
-    code_seq ret = code_seq_singleton(code_jmp(code_seq_size(procs)));
+    code_seq ret = code_seq_empty();
     ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     //Proc decls returns void because they are stored in a global data structure.
     gen_code_procDecls(blk->data.program.pds);
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_rtn());
+
+    starting[index] = code_seq_size(ret);
+    index++;
+    procBodysSize += code_seq_size(ret);
+
     return ret;
 }
 
@@ -177,10 +188,7 @@ code_seq gen_code_assignStmt(AST *stmt)
 // generate code for the statement
 code_seq gen_code_callStmt(AST *stmt)
 {
-    
-    // Replace the following with your implementation
-    bail_with_error("gen_code_callStmt not implemented yet!");
-    return code_seq_empty();
+    return(code_call(stmt->data.proc_decl.lab->addr));
 }
 
 // TODO Correct begin stmt
