@@ -33,6 +33,8 @@
 code_seq procs;
 //Also a global data struct for the starting points of the procedures.
 static int procBodysSize = 1;
+static int constDecls = 0;
+static int varDecls = 0;
 
 // Initialize the code generator
 void gen_code_initialize()
@@ -66,7 +68,6 @@ code_seq gen_code_block(AST *blk)
     return ret;
 }
 
-// TODO
 // generate code for the declarations in cds
 code_seq gen_code_constDecls(AST_list cds)
 {
@@ -78,10 +79,10 @@ code_seq gen_code_constDecls(AST_list cds)
     return ret;
 }
 
-// TODO
 // generate code for the const declaration cd
 code_seq gen_code_constDecl(AST *cd)
 {
+    constDecls++;
     code_seq ret = code_seq_singleton(code_lit(cd->data.const_decl.num_val));
     return ret;
 }
@@ -100,6 +101,7 @@ code_seq gen_code_varDecls(AST_list vds)
 // generate code for the var declaration vd
 code_seq gen_code_varDecl(AST *vd)
 {
+    varDecls++;
     return code_seq_singleton(code_inc(1));
 }
 
@@ -118,17 +120,18 @@ void gen_code_procDecl(AST *pd)
     //Add the procedure for the AST to the array/linked list.
     label_set(pd->data.proc_decl.lab, procBodysSize);
     procs = code_seq_concat(procs, gen_code_procBlock(pd->data.proc_decl.block));
+    code_seq_fix_labels(procs);
 }
 
 // generate code for blk
 code_seq gen_code_procBlock(AST *blk)
 {
+    varDecls = 0;
+    constDecls = 0;
     code_seq ret = code_seq_empty();
     ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
-    int constSize = code_seq_size(ret);
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
-    int varSize = code_seq_size(ret);
-    int totalSize = constSize-1 + varSize;
+    int totalSize = varDecls + constDecls;
     //Proc decls returns void because they are stored in a global data structure.
     gen_code_procDecls(blk->data.program.pds);
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
