@@ -304,7 +304,10 @@ code_seq gen_code_skipStmt(AST *stmt)
 // generate code for the condition
 code_seq gen_code_cond(AST *cond)
 {
-    if(cond->type_tag == oddsym){
+    // if (DEBUG) {
+    //     fprintf(stderr, "generating condition: %s\n", cond->type_tag == odd_cond_ast ? "ODD" : "EVEN");
+    // }
+    if(cond->type_tag == odd_cond_ast){
         return gen_code_odd_cond(cond);
     }else{
         return gen_code_bin_cond(cond);
