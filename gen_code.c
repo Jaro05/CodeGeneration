@@ -25,8 +25,6 @@
 
 code_seq procs;
 //Also a global data struct for the starting points of the procedures.
-int starting[200];
-int index = 1;
 static int procBodysSize = 0;
 
 // Initialize the code generator
@@ -39,7 +37,6 @@ void gen_code_initialize()
 code_seq gen_code_program(AST *prog)
 {
     // ⟨program⟩ ::= ⟨block⟩ in pl0, so just go on to gen_code_block.
-    starting[0] = 1;
     procs = code_seq_empty();
     code_seq ret = gen_code_block(prog);
     ret = code_seq_concat(procs, ret);
@@ -110,9 +107,9 @@ void gen_code_procDecls(AST_list pds)
 void gen_code_procDecl(AST *pd)
 {
     //Add the procedure for the AST to the array/linked list.
-    label_set(pd->data.proc_decl.lab, 1); //set the label to be used later.
-    printf("%d", pd->data.proc_decl.lab->addr);
+
     procs = code_seq_concat(procs, gen_code_procBlock(pd->data.proc_decl.block));
+    label_set(pd->data.proc_decl.lab, procBodysSize);
 }
 
 // generate code for blk
@@ -126,8 +123,6 @@ code_seq gen_code_procBlock(AST *blk)
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_rtn());
 
-    starting[index] = code_seq_size(ret);
-    index++;
     procBodysSize += code_seq_size(ret);
 
     return ret;
@@ -188,7 +183,7 @@ code_seq gen_code_assignStmt(AST *stmt)
 // generate code for the statement
 code_seq gen_code_callStmt(AST *stmt)
 {
-    return(code_call(stmt->data.proc_decl.lab->addr));
+    return(code_cal(stmt->data.call_stmt.ident->data.ident.idu->attrs->lab));
 }
 
 // TODO Correct begin stmt
