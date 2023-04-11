@@ -116,10 +116,16 @@ code_seq gen_code_procBlock(AST *blk)
 {
     code_seq ret = code_seq_empty();
     ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
+    int constSize = code_seq_size(ret);
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
+    int varSize = code_seq_size(ret);
+    int totalSize = constSize + varSize;
     //Proc decls returns void because they are stored in a global data structure.
     gen_code_procDecls(blk->data.program.pds);
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
+    if(totalSize > 0){
+        ret = code_seq_add_to_end(ret, code_inc(-totalSize));
+    }
     ret = code_seq_add_to_end(ret, code_rtn());
 
     procBodysSize += code_seq_size(ret);
