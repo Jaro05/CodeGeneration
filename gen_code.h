@@ -29,9 +29,12 @@ extern code_seq gen_code_varDecl(AST *vd);
 // and store them for later use
 extern void gen_code_procDecls(AST_list pds);
 
+
 // generate code for the procedure declaration pd
 // and store it for later use
 extern void gen_code_procDecl(AST *pd);
+
+extern code_seq gen_code_procBlock(AST *blk);
 
 // generate code for the statement
 extern code_seq gen_code_stmt(AST *stmt);

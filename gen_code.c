@@ -23,8 +23,7 @@
 */
 
 
-AST *procs[200];
-static int index = 0;
+code_seq procs;
 static int procBodysSize = 0;
 
 // Initialize the code generator
@@ -37,7 +36,9 @@ void gen_code_initialize()
 code_seq gen_code_program(AST *prog)
 {
     // ⟨program⟩ ::= ⟨block⟩ in pl0, so just go on to gen_code_block.
+    procs = code_seq_empty();
     code_seq ret = gen_code_block(prog);
+    ret = code_seq_concat(procs, ret);
     return(ret);
 }
 
@@ -48,22 +49,9 @@ code_seq gen_code_block(AST *blk)
     ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     //Proc decls returns void because they are stored in a global data structure.
-    if(index == 0){
-        gen_code_procDecls(blk->data.program.pds);
-        code_seq procret = code_seq_empty();
-        for(int i = 0; i < index; i++){
-            procret = code_seq_concat(procret, gen_code_block(procs[i]->data.proc_decl.block));
-           
-        }
-        procBodysSize += code_seq_size(procret);
-        procret = code_seq_concat(code_jmp(procBodysSize), procret);
-        procret = code_seq_concat(procret, code_rtn());
-        ret = code_seq_concat(procret, ret);
-    }
-    
+    gen_code_procDecls(blk->data.program.pds);
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     ret = code_seq_add_to_end(ret, code_hlt());
-
     return ret;
 }
 
@@ -117,8 +105,21 @@ void gen_code_procDecls(AST_list pds)
 void gen_code_procDecl(AST *pd)
 {
     //Add the procedure for the AST to the array/linked list.
-    procs[index] = pd;
-    index++;
+    procs = code_seq_concat(procs, gen_code_procBlock(pd->data.proc_decl.block));
+    pd->data.proc_decl.lab; //set the label to be used later.
+}
+
+// generate code for blk
+code_seq gen_code_procBlock(AST *blk)
+{
+    code_seq ret = code_seq_singleton(code_jmp(code_seq_size(procs)));
+    ret = code_seq_concat(ret, gen_code_constDecls(blk->data.program.cds));
+    ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
+    //Proc decls returns void because they are stored in a global data structure.
+    gen_code_procDecls(blk->data.program.pds);
+    ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
+    ret = code_seq_add_to_end(ret, code_rtn());
+    return ret;
 }
 
 // generate code for the statement
