@@ -1,0 +1,109 @@
+Addr  OP    M    
+0     JMP   69   
+1     INC   1    
+2     LIT   44   
+3     LIT   44   
+4     NEQ   0    
+5     JPC   2    
+6     JMP   53   
+7     PBP   0    
+8     PSI   0    
+9     PSI   0    
+10    PSI   0    
+11    PSI   0    
+12    LIT   44   
+13    LIT   1    
+14    ADD   0    
+15    STO   3    
+16    PBP   0    
+17    PSI   0    
+18    PSI   0    
+19    PSI   0    
+20    LIT   55   
+21    PBP   0    
+22    PSI   0    
+23    PSI   0    
+24    PSI   0    
+25    PSI   0    
+26    LOD   3    
+27    SUB   0    
+28    STO   3    
+29    PBP   0    
+30    PSI   0    
+31    PSI   0    
+32    LIT   66   
+33    PBP   0    
+34    PSI   0    
+35    PSI   0    
+36    PSI   0    
+37    LOD   3    
+38    MUL   0    
+39    STO   3    
+40    PBP   0    
+41    PSI   0    
+42    LIT   77   
+43    PBP   0    
+44    PSI   0    
+45    PSI   0    
+46    PSI   0    
+47    PSI   0    
+48    LOD   3    
+49    DIV   0    
+50    STO   3    
+51    PBP   0    
+52    PBP   0    
+53    PSI   0    
+54    PSI   0    
+55    PSI   0    
+56    LOD   3    
+57    STO   3    
+58    JMP   -56  
+59    RTN   0    
+60    INC   1    
+61    CAL   1    
+62    RTN   0    
+63    INC   1    
+64    CAL   1    
+65    RTN   0    
+66    INC   1    
+67    CAL   1    
+68    RTN   0    
+69    INC   3    
+70    INC   1    
+71    CAL   1    
+72    HLT   0    
+Tracing ...
+PC: 0 BP: 0 SP: 0
+stack: 
+==> addr: 0     JMP   69   
+PC: 69 BP: 0 SP: 0
+stack: 
+==> addr: 69    INC   3    
+PC: 70 BP: 0 SP: 3
+stack: S[0]: 0 S[1]: 0 S[2]: 0 
+==> addr: 70    INC   1    
+PC: 71 BP: 0 SP: 4
+stack: S[0]: 0 S[1]: 0 S[2]: 0 S[3]: 0 
+==> addr: 71    CAL   1    
+PC: 1 BP: 4 SP: 7
+stack: S[4]: 0 S[5]: 0 S[6]: 72 
+==> addr: 1     INC   1    
+PC: 2 BP: 4 SP: 8
+stack: S[4]: 0 S[5]: 0 S[6]: 72 S[7]: 0 
+==> addr: 2     LIT   44   
+PC: 3 BP: 4 SP: 9
+stack: S[4]: 0 S[5]: 0 S[6]: 72 S[7]: 0 S[8]: 44 
+==> addr: 3     LIT   44   
+PC: 4 BP: 4 SP: 10
+stack: S[4]: 0 S[5]: 0 S[6]: 72 S[7]: 0 S[8]: 44 S[9]: 44 
+==> addr: 4     NEQ   0    
+PC: 5 BP: 4 SP: 9
+stack: S[4]: 0 S[5]: 0 S[6]: 72 S[7]: 0 S[8]: 0 
+==> addr: 5     JPC   2    
+PC: 6 BP: 4 SP: 8
+stack: S[4]: 0 S[5]: 0 S[6]: 72 S[7]: 0 
+==> addr: 6     JMP   53   
+PC: 59 BP: 4 SP: 8
+stack: S[4]: 0 S[5]: 0 S[6]: 72 S[7]: 0 
+==> addr: 59    RTN   0    
+VM stack invariant failure: SP (5) < BP (72)!

@@ -9,6 +9,10 @@
     gcc -o compiler ast.c ast.h code.c code.h compiler_main.c file_location.c file_location.h gen_code.c gen_code.h id_attrs.c id_attrs.h id_use.c id_use.h instruction.c instruction.h label.c label.h lexer.c lexer.h lexer_output.c lexer_output.h lexical_address.c lexical_address.h parser.c parser.h reserved.c reserved.h scope.c scope.h scope_check.c scope_check.h symtab.c symtab.h token.c token.h unparser.c unparser.h utilities.c utilities.h
     gcc compiler ast.c ast.h code.c code.h compiler_main.c file_location.c file_location.h gen_code.c gen_code.h id_attrs.c id_attrs.h id_use.c id_use.h instruction.c instruction.h label.c label.h lexer.c lexer.h lexer_output.c lexer_output.h lexical_address.c lexical_address.h parser.c parser.h reserved.c reserved.h scope.c scope.h scope_check.c scope_check.h symtab.c symtab.h token.c token.h unparser.c unparser.h utilities.c utilities.h
 
+    (must compile vm AND main code before running anything the first time)
+    //In the vm subdirectory, call cd vm first
+    gcc -o vm instruction.c machine.c machine_main.c stack.c utilities.c
+
     // TO RUN
     // PART 1
     ./compiler hw4-vmtest1.pl0 > hw4-vmtest1.myvi
@@ -19,6 +23,9 @@
     vm/vm hw4-vmtest1.myvi > hw4-vmtest1.myvo 2>&1
                         or
     make hw4-vmtest1.myvo
+
+    All test cases
+    make check-outputs
 
 */
 
@@ -40,7 +47,9 @@ code_seq gen_code_program(AST *prog)
     procs = code_seq_empty();
     code_seq ret = gen_code_block(prog);
     ret = code_seq_concat(procs, ret);
-    ret = code_seq_concat(code_jmp(procBodysSize), ret);
+    if(procBodysSize > 1){
+        ret = code_seq_concat(code_jmp(procBodysSize), ret);
+    }
     return(ret);
 }
 
@@ -119,12 +128,12 @@ code_seq gen_code_procBlock(AST *blk)
     int constSize = code_seq_size(ret);
     ret = code_seq_concat(ret, gen_code_varDecls(blk->data.program.vds));
     int varSize = code_seq_size(ret);
-    int totalSize = constSize + varSize;
+    int totalSize = constSize-1 + varSize;
     //Proc decls returns void because they are stored in a global data structure.
     gen_code_procDecls(blk->data.program.pds);
     ret = code_seq_concat(ret, gen_code_stmt(blk->data.program.stmt));
     if(totalSize > 0){
-        ret = code_seq_add_to_end(ret, code_inc(-totalSize));
+        ret = code_seq_concat(ret, code_inc(-totalSize));
     }
     ret = code_seq_add_to_end(ret, code_rtn());
 
