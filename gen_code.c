@@ -25,7 +25,7 @@
 
 code_seq procs;
 //Also a global data struct for the starting points of the procedures.
-static int procBodysSize = 0;
+static int procBodysSize = 1;
 
 // Initialize the code generator
 void gen_code_initialize()
@@ -107,9 +107,8 @@ void gen_code_procDecls(AST_list pds)
 void gen_code_procDecl(AST *pd)
 {
     //Add the procedure for the AST to the array/linked list.
-
-    procs = code_seq_concat(procs, gen_code_procBlock(pd->data.proc_decl.block));
     label_set(pd->data.proc_decl.lab, procBodysSize);
+    procs = code_seq_concat(procs, gen_code_procBlock(pd->data.proc_decl.block));
 }
 
 // generate code for blk
