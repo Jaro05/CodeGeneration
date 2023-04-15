@@ -1,4 +1,4 @@
-/* $Id: scope.c,v 1.3 2023/03/21 05:06:04 leavens Exp $ */
+/* $Id: scope.c,v 1.4 2023/04/06 18:05:23 leavens Exp leavens $ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +18,7 @@ scope_t *scope_create()
     }
     new_s->size = 0;
     new_s->next_loc_offset = 0;
-    for (int j; j < MAX_SCOPE_SIZE; j++) {
+    for (int j = 0; j < MAX_SCOPE_SIZE; j++) {
 	new_s->entries[j] = NULL;
     }
     return new_s;

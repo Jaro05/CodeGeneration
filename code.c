@@ -1,4 +1,4 @@
-/* $Id: code.c,v 1.11 2023/03/27 15:01:19 leavens Exp leavens $ */
+/* $Id: code.c,v 1.13 2023/04/09 19:14:10 leavens Exp leavens $ */
 #include <stdlib.h>
 #include "utilities.h"
 #include "lexical_address.h"
@@ -36,7 +36,7 @@ code *code_nop()
 }
 
 // literal push
-code *code_lit(short int n)
+code *code_lit(word n)
 {
     return code_create(LIT, n);
 }
@@ -366,7 +366,7 @@ code_seq code_compute_fp(unsigned int levelsOut)
     code_seq ret = code_seq_singleton(code_pbp()); // bp of current stack frame
     while (levelsOut > 0) {
 	// add in code to follow each needed static link
-	ret = code_seq_add_to_end(ret, code_psi(0));
+	ret = code_seq_add_to_end(ret, code_psi());
 	levelsOut--;
     }
     // now ret holds the code to put the address of the frame for *la

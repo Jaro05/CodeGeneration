@@ -1,4 +1,4 @@
-/* $Id: lexer.c,v 1.2 2023/03/20 21:23:14 leavens Exp $ */
+/* $Id: lexer.c,v 1.3 2023/04/06 18:05:23 leavens Exp leavens $ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -140,7 +140,7 @@ token lexer_next()
     t.line = line;
     t.column = column;
 
-    char c = lexer_getchar(input_file);
+    char c = lexer_getchar();
     
     // since we consumed all the whitespace
     // c should not be a kind of space character

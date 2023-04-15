@@ -1,8 +1,10 @@
-# $Id: Makefile,v 1.21 2023/03/23 08:30:36 leavens Exp leavens $
-# Makefile for lexer in COP 3402
+# $Id: Makefile,v 1.31 2023/04/14 14:30:46 leavens Exp leavens $
+# Makefile for PL/0 compiler and code generation
 
 # Add .exe to the end of target to get that suffix in the rules
 COMPILER = compiler
+LEXER = ./compiler -l
+UNPARSER = ./compiler -u
 VM = vm
 CC = gcc
 # on Linux, the following can be used with gcc:
@@ -13,15 +15,25 @@ RM = rm -f
 SUBMISSIONZIPFILE = submission.zip
 ZIP = zip -9
 SOURCESLIST = sources.txt
-TESTS = hw3-asttest*.pl0 hw3-parseerrtest*.pl0 hw3-declerrtest*.pl0 hw4-asttest*.pl0 hw4-parseerrtest*.pl0 hw4-declerrtest*.pl0
-VMTESTS = hw4-vmtest*.pl0
-EXPECTEDOUTPUTS = `echo $(TESTS) | sed -e 's/\\.pl0/.out/g'`
-EXPECTEDVMINPUTS = `echo $(VMTESTS) | sed -e 's/\\.pl0/.vmi/g'`
-EXPECTEDVMOUTPUTS = `echo $(VMTESTS) | sed -e 's/\\.pl0/.vmo/g'`
+SUF = pl0
+TESTS = hw3-asttest*.$(SUF) hw3-parseerrtest*.$(SUF) hw3-declerrtest*.$(SUF) hw4-asttest*.$(SUF) hw4-parseerrtest*.$(SUF) hw4-declerrtest*.$(SUF)
+VMTESTS = hw4-vmtest*.$(SUF)
+EXPECTEDOUTPUTS = `echo $(TESTS) | sed -e 's/\\.$(SUF)/.out/g'`
+EXPECTEDVMINPUTS = `echo $(VMTESTS) | sed -e 's/\\.$(SUF)/.vmi/g'`
+EXPECTEDVMOUTPUTS = `echo $(VMTESTS) | sed -e 's/\\.$(SUF)/.vmo/g'`
 
+# create the VM executable
+.PRECIOUS: $(VM)/$(VM)
+$(VM): $(VM)/$(VM)
+
+$(VM)/$(VM):
+	cd $(VM); $(MAKE) $(VM)
+
+# create the compiler executable
 $(COMPILER): *.c *.h
 	$(CC) $(CFLAGS) -o $(COMPILER) `cat $(SOURCESLIST)`
 
+# rule for compiling individual .c files
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c $<
 
@@ -32,29 +44,33 @@ clean:
 	$(RM) *.stackdump core
 	$(RM) $(SUBMISSIONZIPFILE)
 
-.PRECIOUS: %.myo
-%.myo: %.pl0 $(COMPILER)
-	./$(COMPILER) $< > $@ 2>&1
+# Rules for making individual outputs (e.g., execute  make vmtest1.myvi)
 
-%.myvi: %.pl0 $(COMPILER)
+# the .myvi files are outputs of the compiler on the given PL/0 programs
+.PRECIOUS: %.myvi
+%.myvi: %.$(SUF) $(COMPILER)
 	./$(COMPILER) $< > $@
 
-%.myvo: %.myvi $(VM)/$(VM)
+# the .myvo files are outputs from running compiled .myvi files in the VM
+.PRECIOUS: %.myvo
+%.myvo: %.myvi $(VM)
 	$(VM)/$(VM) $< > $@ 2>&1
 
+# main target for testing
 .PHONY: check-outputs check-vm-outputs
 check-outputs: check-vm-outputs
 
-check-vm-outputs: $(COMPILER) $(VMTESTS) $(VM)/$(VM)
+check-vm-outputs: $(VM) $(COMPILER) $(VMTESTS)
 	DIFFS=0; \
-	for f in `echo $(VMTESTS) | sed -e 's/\\.pl0//g'`; \
+	for f in `echo $(VMTESTS) | sed -e 's/\\.$(SUF)//g'`; \
 	do \
-		echo compiling "$$f.pl0" ...; \
-		$(RM) "$$f.vmi"; \
-		./$(COMPILER) "$$f.pl0" > "$$f.myvi"; \
+		echo compiling "$$f.$(SUF)" ...; \
+		$(RM) "$$f.myvi"; \
+		./$(COMPILER) "$$f.$(SUF)" > "$$f.myvi"; \
 		echo running "$$f.myvi" in the VM ...; \
 		vm/vm "$$f.myvi" > "$$f.myvo" 2>&1; \
-		diff -w -B "$$f.vmo" "$$f.myvo" && echo 'passed!' || DIFFS=1; \
+		diff -w -B "$$f.vmo" "$$f.myvo" && echo 'passed!' \
+			|| { echo 'failed!'; DIFFS=1; }; \
 	done; \
 	if test 0 = $$DIFFS; \
 	then \
@@ -64,29 +80,33 @@ check-vm-outputs: $(COMPILER) $(VMTESTS) $(VM)/$(VM)
 	fi
 
 # Automatically generate the submission zip file
-$(SUBMISSIONZIPFILE): $(SOURCESLIST) *.c *.h *.myo *.myvo
-	$(ZIP) $(SUBMISSIONZIPFILE) $(SOURCESLIST) *.c *.h *.myo *.myvo Makefile
+$(SUBMISSIONZIPFILE): $(SOURCESLIST) *.c *.h *.myvi *.myvo
+	$(ZIP) $(SUBMISSIONZIPFILE) $(SOURCESLIST) *.c *.h *.myvi *.myvo Makefile
 
 # Automatically regenerate the sources.txt file
 .PRECIOUS: $(SOURCESLIST)
 $(SOURCESLIST):
 	echo *.c > $(SOURCESLIST)
 
+# the .myo files are for testing the compiler by itself (the front end)
+.PRECIOUS: %.myo
+%.myo: %.$(SUF) $(VM) $(COMPILER)
+	./$(UNPARSER) $< > $@ 2>&1
 
-# developer's section below...
+# instructor's section below...
 
 .PRECIOUS: %.out
-%.out: %.pl0 $(COMPILER)
+%.out: %.$(SUF) $(COMPILER)
 	@if test '$(IMTHEINSTRUCTOR)' != true ; \
 	then \
 		echo 'Students should NOT use the target $@,'; \
 		echo 'as using this target ($@) will invalidate a test'; \
 		exit 1; \
 	fi
-	./$(COMPILER) -u $< > $@ 2>&1
+	./$(UNPARSER) $< > $@ 2>&1
 
 .PRECIOUS: %.vmi
-%.vmi: %.pl0 $(COMPILER)
+%.vmi: %.$(SUF) $(VM) $(COMPILER)
 	@if test '$(IMTHEINSTRUCTOR)' != true ; \
 	then \
 		echo 'Students should NOT use the target $@,'; \
@@ -96,7 +116,7 @@ $(SOURCESLIST):
 	./$(COMPILER) $< > $@
 
 .PRECIOUS: %.vmo
-%.vmo: %.vmi $(VM)/$(VM)
+%.vmo: %.vmi $(VM)
 	@if test '$(IMTHEINSTRUCTOR)' != true ; \
 	then \
 		echo 'Students should NOT use the target $@,'; \
@@ -106,7 +126,7 @@ $(SOURCESLIST):
 	$(VM)/$(VM) $< > $@ 2>&1
 
 .PHONY: create-outputs create-vm-outputs
-create-outputs: $(COMPILER) $(TESTS) $(VMTESTS) 
+create-outputs: $(VM) $(COMPILER) $(TESTS) $(VMTESTS) 
 	@if test '$(IMTHEINSTRUCTOR)' != true ; \
 	then \
 		echo 'Students should use the target check-outputs,' ;\
@@ -122,26 +142,26 @@ create-non-vm-outputs: $(COMPILER) $(TESTS)
 		echo 'as using this target (create-non-vm-outputs) will invalidate the tests!' ; \
 		exit 1; \
 	fi
-	for f in `echo $(TESTS) | sed -e 's/\\.pl0//g'`; \
+	for f in `echo $(TESTS) | sed -e 's/\\.$(SUF)//g'`; \
 	do \
-		echo running "$$f.pl0"; \
+		echo running "$$f.$(SUF)"; \
 		$(RM) "$$f.out"; \
-		./$(COMPILER) -u "$$f.pl0" >"$$f.out" 2>&1; \
+		./$(COMPILER) -u "$$f.$(SUF)" >"$$f.out" 2>&1; \
 	done; \
 	echo 'done creating non-VM test outputs!'
 
-create-vm-outputs: $(COMPILER) $(VMTESTS)
+create-vm-outputs: $(VM) $(COMPILER) $(VMTESTS)
 	@if test '$(IMTHEINSTRUCTOR)' != true ; \
 	then \
 		echo 'Students should use the target check-vm-outputs,'; \
 		echo 'as using this target (create-vm-outputs) will invalidate the tests!' ; \
 		exit 1; \
 	fi
-	for f in `echo $(VMTESTS) | sed -e 's/\\.pl0//g'`; \
+	for f in `echo $(VMTESTS) | sed -e 's/\\.$(SUF)//g'`; \
 	do \
-		echo compiling "$$f.pl0"; \
+		echo compiling "$$f.$(SUF)"; \
 		$(RM) "$$f.vmi"; \
-		./$(COMPILER) "$$f.pl0" > "$$f.vmi"; \
+		./$(COMPILER) "$$f.$(SUF)" > "$$f.vmi"; \
 		echo running "$$f.vmi"; \
 		vm/vm "$$f.vmi" > "$$f.vmo" 2>&1; \
 	done
@@ -149,14 +169,14 @@ create-vm-outputs: $(COMPILER) $(VMTESTS)
 
 .PHONY: digest
 digest digest.txt: 
-	for f in `ls $(TESTS) | sed -e 's/\\.pl0//g'`; \
-        do cat $$f.pl0; echo " "; cat $$f.out; echo " "; echo " "; \
+	for f in `ls $(TESTS) | sed -e 's/\\.$(SUF)//g'`; \
+        do cat $$f.$(SUF); echo " "; cat $$f.out; echo " "; echo " "; \
         done >digest.txt
 
 .PHONY: vmdigest
-vmdigest vmdigest.txt: 
-	for f in `ls $(VMTESTS) | sed -e 's/\\.pl0//g'`; \
-        do cat $$f.pl0; echo " "; cat $$f.vmo; echo " "; echo " "; \
+vmdigest vmdigest.txt: create-vm-outputs
+	for f in `ls $(VMTESTS) | sed -e 's/\\.$(SUF)//g'`; \
+        do cat $$f.$(SUF); echo " "; cat $$f.vmo; echo " "; echo " "; \
         done >vmdigest.txt
 
 # don't use develop-clean unless you want to regenerate the expected outputs
@@ -188,7 +208,7 @@ restore: gen_code_actual.c
 	chmod u+w *
 
 .PHONY: zip
-zip hw4-tests.zip: create-vm-outputs stubs $(TESTSZIPFILE) 
+zip hw4-tests.zip: create-vm-outputs stubs $(TESTSZIPFILE) restore
 
 $(TESTSZIPFILE): $(TESTS) $(VMTESTS) Makefile $(PROVIDEDFILES)
 	test -f gen_code_actual.c || exit 1
